@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>8th Grade Science MCAS Escape Room</title>
+
+<style>
+    body{
+        margin:0;
+        font-family:Arial, Helvetica, sans-serif;
+        background:#111827;
+        color:white;
+        overflow:hidden;
+    }
+
+    #game{
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        justify-content:center;
+        height:100vh;
+        padding:20px;
+        text-align:center;
+    }
+
+    h1{
+        color:#22d3ee;
+        margin-bottom:10px;
+    }
+
+    .room{
+        background:#1f2937;
+        border:4px solid #22d3ee;
+        border-radius:20px;
+        padding:30px;
+        max-width:800px;
+        width:90%;
+        box-shadow:0 0 20px #000;
+    }
+
+    .level{
+        font-size:22px;
+        color:#facc15;
+        margin-bottom:15px;
+    }
+
+    .question{
+        font-size:24px;
+        margin-bottom:20px;
+        line-height:1.5;
+    }
+
+    .answers{
+        display:grid;
+        grid-template-columns:1fr 1fr;
+        gap:15px;
+    }
+
+    button{
+        padding:15px;
+        font-size:18px;
+        border:none;
+        border-radius:10px;
+        cursor:pointer;
+        background:#0ea5e9;
+        color:white;
+        transition:0.2s;
+    }
+
+    button:hover{
+        background:#0284c7;
+        transform:scale(1.05);
+    }
+
+    #message{
+        margin-top:20px;
+        font-size:22px;
+        min-height:40px;
+    }
+
+    #timer{
+        font-size:24px;
+        color:#f87171;
+        margin-bottom:15px;
+    }
+
+    #score{
+        margin-top:15px;
+        font-size:20px;
+        color:#4ade80;
+    }
+
+    #startScreen, #endScreen{
+        position:absolute;
+        width:100%;
+        height:100%;
+        background:#0f172a;
+        display:flex;
+        flex-direction:column;
+        justify-content:center;
+        align-items:center;
+        text-align:center;
+        padding:20px;
+    }
+
+    .bigButton{
+        margin-top:20px;
+        padding:20px 40px;
+        font-size:24px;
+        background:#22c55e;
+    }
+
+    .bigButton:hover{
+        background:#16a34a;
+    }
+
+</style>
+</head>
+
+<body>
+
+<div id="startScreen">
+    <h1>🔬 Worcester Public Schools</h1>
+    <h2>8th Grade Science MCAS Escape Room</h2>
+    <p>
+        Escape each science lab by answering MCAS-style questions.<br>
+        Questions get harder every level!
+    </p>
+    <button class="bigButton" onclick="startGame()">Start Escape Room</button>
+</div>
+
+<div id="game" style="display:none;">
+    <div class="room">
+
+        <div class="level" id="levelDisplay"></div>
+        <div id="timer">Time: 60</div>
+
+        <div class="question" id="question"></div>
+
+        <div class="answers" id="answers"></div>
+
+        <div id="message"></div>
+
+        <div id="score"></div>
+
+    </div>
+</div>
+
+<div id="endScreen" style="display:none;">
+    <h1 id="endTitle"></h1>
+    <p id="endMessage"></p>
+    <button class="bigButton" onclick="location.reload()">Play Again</button>
+</div>
+
+<script>
+
+const levels = [
+
+{
+    name: "Level 1: Cells & Organisms",
+    questions: [
+        {
+            question: "Which cell structure controls the activities of the cell?",
+            answers:["Nucleus","Cell membrane","Ribosome","Cytoplasm"],
+            correct:0
+        },
+        {
+            question: "What is the function of chloroplasts?",
+            answers:["Digestion","Photosynthesis","Respiration","Movement"],
+            correct:1
+        },
+        {
+            question: "Which organism is made of only one cell?",
+            answers:["Human","Tree","Bacteria","Fish"],
+            correct:2
+        }
+    ]
+},
+
+{
+    name: "Level 2: Matter & Chemistry",
+    questions: [
+        {
+            question: "What happens to molecules when matter is heated?",
+            answers:["They stop moving","They disappear","They move faster","They shrink"],
+            correct:2
+        },
+        {
+            question: "Which state of matter has a definite volume but no definite shape?",
+            answers:["Solid","Gas","Liquid","Plasma"],
+            correct:2
+        },
+        {
+            question: "What is the pH of a neutral solution?",
+            answers:["0","14","10","7"],
+            correct:3
+        }
+    ]
+},
+
+{
+    name: "Level 3: Forces & Motion",
+    questions: [
+        {
+            question: "What force pulls objects toward Earth?",
+            answers:["Magnetism","Friction","Gravity","Electricity"],
+            correct:2
+        },
+        {
+            question: "An object moving at constant speed has:",
+            answers:["Balanced forces","No mass","No energy","No motion"],
+            correct:0
+        },
+        {
+            question: "Which machine makes work easier by changing force direction?",
+            answers:["Pulley","Wheel","Axle","Lever"],
+            correct:0
+        }
+    ]
+},
+
+{
+    name: "Final Escape Lab: Earth & Space Science",
+    questions: [
+        {
+            question: "What causes the seasons on Earth?",
+            answers:[
+                "Earth’s distance from the Sun",
+                "Earth’s tilted axis",
+                "Solar eclipses",
+                "Ocean currents"
+            ],
+            correct:1
+        },
+        {
+            question: "Which layer of Earth is liquid iron and nickel?",
+            answers:[
+                "Crust",
+                "Mantle",
+                "Inner Core",
+                "Outer Core"
+            ],
+            correct:3
+        },
+        {
+            question: "Which process is part of the water cycle?",
+            answers:[
+                "Combustion",
+                "Condensation",
+                "Oxidation",
+                "Photosynthesis"
+            ],
+            correct:1
+        }
+    ]
+}
+
+];
+
+let currentLevel = 0;
+let currentQuestion = 0;
+let score = 0;
+let timer;
+let timeLeft = 60;
+
+function startGame(){
+    document.getElementById("startScreen").style.display = "none";
+    document.getElementById("game").style.display = "flex";
+
+    loadQuestion();
+    startTimer();
+}
+
+function startTimer(){
+    timer = setInterval(() => {
+        timeLeft--;
+        document.getElementById("timer").innerText = "Time: " + timeLeft;
+
+        if(timeLeft <= 0){
+            endGame(false);
+        }
+
+    },1000);
+}
+
+function loadQuestion(){
+
+    const level = levels[currentLevel];
+    const q = level.questions[currentQuestion];
+
+    document.getElementById("levelDisplay").innerText = level.name;
+
+    document.getElementById("question").innerText = q.question;
+
+    document.getElementById("score").innerText =
+        "Score: " + score;
+
+    const answersDiv = document.getElementById("answers");
+    answersDiv.innerHTML = "";
+
+    q.answers.forEach((answer,index)=>{
+
+        const button = document.createElement("button");
+        button.innerText = answer;
+
+        button.onclick = ()=> checkAnswer(index);
+
+        answersDiv.appendChild(button);
+
+    });
+
+}
+
+function checkAnswer(index){
+
+    const level = levels[currentLevel];
+    const q = level.questions[currentQuestion];
+
+    if(index === q.correct){
+
+        score += 10;
+
+        document.getElementById("message").innerHTML =
+            "✅ Correct! Door unlocked.";
+
+        currentQuestion++;
+
+        if(currentQuestion >= level.questions.length){
+
+            currentLevel++;
+            currentQuestion = 0;
+
+            if(currentLevel >= levels.length){
+                endGame(true);
+                return;
+            }
+
+            setTimeout(()=>{
+                document.getElementById("message").innerHTML =
+                    "🚪 Entering next room...";
+                loadQuestion();
+            },1200);
+
+        }else{
+
+            setTimeout(()=>{
+                loadQuestion();
+                document.getElementById("message").innerHTML = "";
+            },1000);
+
+        }
+
+    }else{
+
+        timeLeft -= 10;
+
+        document.getElementById("message").innerHTML =
+            "❌ Incorrect! You lost 10 seconds.";
+
+        if(timeLeft <= 0){
+            endGame(false);
+        }
+    }
+
+}
+
+function endGame(win){
+
+    clearInterval(timer);
+
+    document.getElementById("game").style.display = "none";
+    document.getElementById("endScreen").style.display = "flex";
+
+    if(win){
+
+        document.getElementById("endTitle").innerHTML =
+            "🎉 You Escaped the Science Lab!";
+
+        document.getElementById("endMessage").innerHTML =
+            "Final Score: " + score +
+            "<br><br>You mastered the 8th Grade Science MCAS!";
+
+    }else{
+
+        document.getElementById("endTitle").innerHTML =
+            "⏰ Time Ran Out!";
+
+        document.getElementById("endMessage").innerHTML =
+            "The lab doors locked before you escaped.<br><br>Score: " + score;
+
+    }
+
+}
+
+</script>
+
+</body>
+</html>
